@@ -28,7 +28,7 @@ const handleGetUser = (
 ): void => {
   const userId = Number(req.params.id);
   if (isNaN(userId)) {
-    next(new Error('Invalid user ID'));
+    next(createError('Invalid user ID', 400));
   } else {
     const user = getUserFromDatabase(userId);
     if (user) {
@@ -53,12 +53,20 @@ const createError = (message: string, statusCode: number) => ({
 
 // エラーハンドリングミドルウェア
 const errorHandler = (
-  err: { message: string; statusCode?: number },
+  err: Error | { message: string; statusCode?: number },
   req: Request,
   res: Response,
   next: NextFunction
 ): void => {
-  res.status(err.statusCode || 500).json({ error: err.message });
+  console.error(err);
+  
+  if ('statusCode' in err) {
+    // カスタムエラーオブジェクトの場合
+    res.status(err.statusCode || 500).json({ error: err.message });
+  } else {
+    // 標準のErrorオブジェクトの場合
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // ミドルウェアの適用
@@ -68,9 +76,6 @@ app.use(logRequest);
 app.get('/user/:id', handleGetUser);
 
 // エラーハンドリングミドルウェアは最後に配置
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({ error: err.message });
-});
+app.use(errorHandler);
 
 app.listen(port, () => console.log(`Server running at http://localhost:${port}`));
