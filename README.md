@@ -1,4 +1,4 @@
-# いきなり TypeScript
+# TypeScript で型安全な Web 開発? なにそれ?
 
 このプロジェクトは、TypeScriptを使用したExpressアプリケーションの基本的な実装例です。
 
